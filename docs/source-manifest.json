@@ -1,0 +1,102 @@
+{
+  "source_repository": "https://github.com/OpenRAE/rae",
+  "source_commit": "9b3146bf4d8a478db3c6b273b1ed90952a239752",
+  "destination_repository": "https://github.com/OpenRAE/runtime",
+  "purpose": "Bootstrap configuration and unchanged governing documents only; not the completed-runtime extraction manifest.",
+  "files": [
+    {
+      "source_path": "implementations/.golangci.yml",
+      "destination_path": "implementations/.golangci.yml",
+      "source_blob": "3bbad57b854fae3289dadbac9c2ed100172da180",
+      "sha256": "fe7fcba028fccfff88bd5b565f26f67ccbb1f69f6f5d6ad6a45b8792a013eb52",
+      "source_sha256": "a3bd25dd5aaf72450ccd06ba7ce0df70bbd0f6c9dbf164e6cc513c23f4b34445",
+      "transformation": "Add the runtime module to the formatter local import prefixes; keep all lint rules unchanged."
+    },
+    {
+      "source_path": "implementations/.gremlins.yaml",
+      "destination_path": "implementations/.gremlins.yaml",
+      "source_blob": "504200c5b6a15ac9cf3d5da7f1cd79913e26703c",
+      "sha256": "75cc3cd1cb951c838d6f2685405347c82c0b425c18e09537f563a3dd85fe81c8"
+    },
+    {
+      "source_path": "docs/decisions/adrs/adr-121-go-engineering-standards.md",
+      "destination_path": "docs/decisions/adrs/adr-121-go-engineering-standards.md",
+      "source_blob": "49e79e217553d5484bd2fa1ebf8f6c0443f9489b",
+      "sha256": "49217f20d43a33c553797580f6cbc16fb4784e4f0ad207507c7f5dafafcaaae1"
+    },
+    {
+      "source_path": "docs/decisions/adrs/adr-122-go-architecture-model.md",
+      "destination_path": "docs/decisions/adrs/adr-122-go-architecture-model.md",
+      "source_blob": "2a41ebc7e6f43098f66e3061bc973c7c158bb164",
+      "sha256": "bb34edd9eb80bb56645ef57f4f48eb3113ac02e95b7af696f32de3bdb8d11fa6"
+    },
+    {
+      "source_path": "docs/decisions/issue-1891-runtime-repository-boundary.md",
+      "destination_path": "docs/decisions/issue-1891-runtime-repository-boundary.md",
+      "source_blob": "b78323a5402cda83b4401bd4347b4fb32b3f7731",
+      "sha256": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406"
+    },
+    {
+      "source_path": ".vale.ini",
+      "destination_path": ".vale.ini",
+      "source_blob": "b13ce89fe30def8d5d1c51c8b50912ac06d35961",
+      "sha256": "fa16a15b5bca25e971c34eeb005b1d70954b0284ac4427c24154435766599d7c"
+    },
+    {
+      "source_path": "styles/RAES/AvoidDismissive.yml",
+      "destination_path": "styles/RAES/AvoidDismissive.yml",
+      "source_blob": "bb57baf45a3915e246f8c0d4c60c271bbef2ada9",
+      "sha256": "14d9b2d8aefdfe99a5bf4e753c60877222e6988a7a880e8710a1c9b3bd684800"
+    },
+    {
+      "source_path": "styles/RAES/AvoidHype.yml",
+      "destination_path": "styles/RAES/AvoidHype.yml",
+      "source_blob": "fb9fd70647a1c983ced431a3a38c843cc8f0286e",
+      "sha256": "2641519f19e1e3a145650a55e3c25b5085e5d3ba814adf5e90efe451429ddb1f"
+    },
+    {
+      "source_path": "styles/RAES/HeadingCase.yml",
+      "destination_path": "styles/RAES/HeadingCase.yml",
+      "source_blob": "f538bf30a5bd8e71ea4b12fddf8fc8c93dda6d5f",
+      "sha256": "5a794f4864b6edd540b7deeb69ca59705f598589ac63b6da959682675863523c"
+    },
+    {
+      "source_path": "styles/RAES/HeadingPunctuation.yml",
+      "destination_path": "styles/RAES/HeadingPunctuation.yml",
+      "source_blob": "02e14d97082d4f476e53ce24a7c92a6b214ffed4",
+      "sha256": "022486315654dc7e7873a6a3647534a4f9a2cb948e2745c00c04004426982d4f"
+    },
+    {
+      "source_path": "styles/RAES/PlainWords.yml",
+      "destination_path": "styles/RAES/PlainWords.yml",
+      "source_blob": "a8888f1c2c9bdf56051e5442147dae250605d54a",
+      "sha256": "44efc05c81ce07a2cb843fba96984b55255b22c2d5c7735677f89b27411de9c2"
+    },
+    {
+      "source_path": "styles/RAES/ReadingLevel.yml",
+      "destination_path": "styles/RAES/ReadingLevel.yml",
+      "source_blob": "a81c02647c1f98ba5583353b5b442e85b4f76891",
+      "sha256": "943e6960e2ebe35985faca8bba1194a7ffeb873a9a7b3119b6b55af90c2a5cb7"
+    },
+    {
+      "source_path": "styles/RAES/SentenceLength.yml",
+      "destination_path": "styles/RAES/SentenceLength.yml",
+      "source_blob": "62df04b3b22c70d22926399f66657296c99be1b0",
+      "sha256": "7b5e718997af724d072a732e19ccfe290d61ae994730251410917ccd815064ea"
+    },
+    {
+      "source_path": "styles/config/vocabularies/RAES/accept.txt",
+      "destination_path": "styles/config/vocabularies/RAES/accept.txt",
+      "source_blob": "8c6e8195cdce294101d94f4681f951c49d0467ed",
+      "sha256": "f9d4805876464cd7e4454989d86bfc3a6cc35ceadc0f94d15f97255f0115f69b"
+    },
+    {
+      "source_path": ".github/workflows/ground-control-phase-e.yml",
+      "destination_path": ".github/workflows/ground-control-phase-e.yml",
+      "source_blob": "531a311c3dab4aa8c2dde24803cd7fe60f5fcbc7",
+      "sha256": "95a6af7d680585e7593118c9707f82eabb0334d654902430534c44c44a1775d0",
+      "source_sha256": "9387dfd281f73f1b074e1d86a7124bacc474c7ed4db5c9ced7de303a4630ccc3",
+      "transformation": "Use runtime branches and the installed schema-v2-capable Ground Control version; keep the existing finalization flow."
+    }
+  ]
+}
