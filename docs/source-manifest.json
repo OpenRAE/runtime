@@ -89,14 +89,6 @@
       "destination_path": "styles/config/vocabularies/RAES/accept.txt",
       "source_blob": "8c6e8195cdce294101d94f4681f951c49d0467ed",
       "sha256": "f9d4805876464cd7e4454989d86bfc3a6cc35ceadc0f94d15f97255f0115f69b"
-    },
-    {
-      "source_path": ".github/workflows/ground-control-phase-e.yml",
-      "destination_path": ".github/workflows/ground-control-phase-e.yml",
-      "source_blob": "531a311c3dab4aa8c2dde24803cd7fe60f5fcbc7",
-      "sha256": "95a6af7d680585e7593118c9707f82eabb0334d654902430534c44c44a1775d0",
-      "source_sha256": "9387dfd281f73f1b074e1d86a7124bacc474c7ed4db5c9ced7de303a4630ccc3",
-      "transformation": "Use runtime branches and the installed schema-v2-capable Ground Control version; keep the existing finalization flow."
     }
   ]
 }
