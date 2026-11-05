@@ -1,0 +1,44 @@
+schema_version: 2
+project: runtime
+github_repo: OpenRAE/runtime
+workflow:
+  base_branch: dev
+  test_command: make test
+  completion_command: make check
+  lint_command: make lint
+  format_command: make format
+  policy_command: make policy
+  precommit_command: make precommit
+  codex_review:
+    pre_push_cap: 1
+  design:
+    compile_command: make build
+    structural_command: make architecture
+    wiring_command: make wiring
+    acceptance_command: bash tools/design-acceptance.sh
+rules:
+  plan_rules: .gc/plan-rules.md
+docs:
+  adr_dir: docs/decisions/adrs
+  architecture_overview: docs/architecture.md
+  coding_standards: docs/decisions/adrs/adr-121-go-engineering-standards.md
+  workflow_reference: CONTRIBUTING.md
+example_paths:
+  source: implementations/go
+  test: implementations/go
+architecture:
+  modules:
+    - path: .
+      implementations:
+        - Makefile
+        - implementations/architecture.json
+      adrs:
+        - docs/decisions/adrs/adr-121-go-engineering-standards.md
+        - docs/decisions/adrs/adr-122-go-architecture-model.md
+    - path: implementations/go
+      implementations:
+        - implementations/go/doc.go
+        - implementations/go/go.mod
+      adrs:
+        - docs/decisions/adrs/adr-121-go-engineering-standards.md
+        - docs/decisions/adrs/adr-122-go-architecture-model.md

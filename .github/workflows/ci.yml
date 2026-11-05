@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [dev, main]
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      mutations:
+        description: Run the existing mutation diagnostics
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install the admitted Go toolchain
+        # Same version and archive digest as RAE's admitted artifact lock.
+        run: |
+          curl --fail --location --output "$RUNNER_TEMP/go.tar.gz" https://dl.google.com/go/go1.27.3.linux-amd64.tar.gz
+          echo "65efbc80fdc1fa2cd2631cad5b481777a68e8725f34e89f50fc6ac714e379b40  $RUNNER_TEMP/go.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/go.tar.gz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/go/bin" >> "$GITHUB_PATH"
+      - name: Build pinned checks
+        run: make tools
+      - name: Install the admitted prose checker
+        run: |
+          curl --fail --location --output "$RUNNER_TEMP/vale.tar.gz" https://github.com/vale-cli/vale/releases/download/v3.15.2/vale_3.15.2_Linux_64-bit.tar.gz
+          echo "fc72e64454d6bd7af91905d4faebbf411bae3eec17bb572f4101311212bc0d9e  $RUNNER_TEMP/vale.tar.gz" | sha256sum --check --strict
+          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C .tools/bin vale
+      - name: Compile, lint, and check architecture and source provenance
+        run: make check VALE=.tools/bin/vale
+      - name: Scan for secrets
+        run: .tools/bin/gitleaks git --redact --no-banner
+      - name: Run race tests and coverage
+        run: make test-ci
+      - name: Resolve the comparison base
+        id: base
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BASE: ${{ github.event.before }}
+        run: |
+          base="${PR_BASE:-$PUSH_BASE}"
+          if ! git cat-file -e "${base}^{commit}" 2>/dev/null; then
+            base=$(git rev-parse HEAD^)
+          fi
+          echo "sha=$(git merge-base "$base" HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Check new regression tests against the base
+        env:
+          BASE: ${{ steps.base.outputs.sha }}
+        run: make regression
+      - name: Run each fuzz target for a bounded time
+        working-directory: implementations/go
+        run: |
+          set -o pipefail
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { targets[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, targets[i]; n = 0 }' |
+            while read -r package target; do
+              go test -run '^$' -fuzz "^${target}\$" -fuzztime 20s "$package"
+            done
+      - name: Run mutation diagnostics
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.mutations }}
+        env:
+          BASE: ${{ steps.base.outputs.sha }}
+        run: make mutation
+
+  title-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require a Conventional Commit title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$TITLE" | grep -Eq '^(feat|fix|perf|docs|chore|refactor|test|ci|build|style|revert)(\([[:alnum:]_./-]+\))?!?: .+'
+          if printf '%s\n' "$TITLE" | grep -Eiq '\[(codex|claude|openai)\]|generated.by|co.authored.by'; then
+            echo 'Use repository metadata without assistant attribution.' >&2
+            exit 1
+          fi
+
+  body-guard:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require the issue, change and verification
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: |
+          printf '%s\n' "$BODY" | grep -Eq '(#[0-9]+|github.com/OpenRAE/(runtime|rae)/issues/[0-9]+)'
+          printf '%s\n' "$BODY" | grep -Eq '^## (Change|Summary)'
+          printf '%s\n' "$BODY" | grep -Eq '^## (Verification|Test plan)'

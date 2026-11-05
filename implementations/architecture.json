@@ -1,0 +1,47 @@
+{
+  "schema": "raes-go-architecture/v2",
+  "configurations": [
+    {
+      "id": "linux-amd64",
+      "goos": "linux",
+      "goarch": "amd64",
+      "tags": []
+    }
+  ],
+  "overview": "docs/architecture.md",
+  "sources": {
+    "docs/decisions/adrs/adr-121-go-engineering-standards.md": "49217f20d43a33c553797580f6cbc16fb4784e4f0ad207507c7f5dafafcaaae1",
+    "docs/decisions/adrs/adr-122-go-architecture-model.md": "bb34edd9eb80bb56645ef57f4f48eb3113ac02e95b7af696f32de3bdb8d11fa6",
+    "docs/decisions/issue-1891-runtime-repository-boundary.md": "e8233ecdf836dbbad4dda9ef373572dd466f1cf59ad0eeb4ab01cc9fd476e406"
+  },
+  "modules": [
+    {
+      "dir": "implementations/go",
+      "path": "github.com/OpenRAE/runtime/implementations/go"
+    }
+  ],
+  "layers": [
+    {
+      "name": "runtime",
+      "dir": "implementations/go",
+      "doc": "The runtime responsibility defined by the accepted RAE split; only an empty bootstrap package exists. Runtime consumes public RAE APIs; RAE product modules never import runtime.",
+      "uses": [],
+      "external": []
+    }
+  ],
+  "packages": [
+    {
+      "design": "docs/architecture.md",
+      "api": {
+        "linux-amd64": [
+          "package raesruntime"
+        ]
+      },
+      "dir": "implementations/go",
+      "layer": "runtime",
+      "public": false,
+      "doc": "Empty bootstrap package; no runtime implementation or exported API.",
+      "imports": []
+    }
+  ]
+}
