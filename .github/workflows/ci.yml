@@ -6,6 +6,8 @@ on:
     types: [opened, synchronize, reopened, edited]
   push:
     branches: [dev, main]
+  merge_group:
+    types: [checks_requested]
   workflow_dispatch:
     inputs:
       mutations:
@@ -52,7 +54,7 @@ jobs:
       - name: Resolve the comparison base
         id: base
         env:
-          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_BASE: ${{ github.event.merge_group.base_sha || github.event.pull_request.base.sha }}
           PUSH_BASE: ${{ github.event.before }}
         run: |
           base="${PR_BASE:-$PUSH_BASE}"
@@ -80,27 +82,69 @@ jobs:
         run: make mutation
 
   title-guard:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - name: Require a Conventional Commit title
+      - name: Resolve the pull request
+        # A merge group event carries no pull request. Read the queued pull
+        # request from the API, so the check validates its current title.
         env:
-          TITLE: ${{ github.event.pull_request.title }}
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
         run: |
-          printf '%s\n' "$TITLE" | grep -Eq '^(feat|fix|perf|docs|chore|refactor|test|ci|build|style|revert)(\([[:alnum:]_./-]+\))?!?: .+'
-          if printf '%s\n' "$TITLE" | grep -Eiq '\[(codex|claude|openai)\]|generated.by|co.authored.by'; then
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = merge_group ]; then
+            pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+            if [[ ! "$QUEUE_REF" =~ $pattern ]]; then
+              echo "Unexpected merge group ref '$QUEUE_REF'" >&2
+              exit 1
+            fi
+            gh api "repos/$GITHUB_REPOSITORY/pulls/${BASH_REMATCH[1]}" > "$RUNNER_TEMP/pull-request.json"
+            jq -e '.base.ref == "dev"' "$RUNNER_TEMP/pull-request.json" > /dev/null || { echo 'The queued pull request does not target dev.' >&2; exit 1; }
+          else
+            jq -e '.pull_request' "$GITHUB_EVENT_PATH" > "$RUNNER_TEMP/pull-request.json"
+          fi
+          jq -er '.title' "$RUNNER_TEMP/pull-request.json" > "$RUNNER_TEMP/title.txt"
+      - name: Require a Conventional Commit title
+        run: |
+          grep -Eq '^(feat|fix|perf|docs|chore|refactor|test|ci|build|style|revert)(\([[:alnum:]_./-]+\))?!?: .+' "$RUNNER_TEMP/title.txt"
+          if grep -Eiq '\[(codex|claude|openai)\]|generated.by|co.authored.by' "$RUNNER_TEMP/title.txt"; then
             echo 'Use repository metadata without assistant attribution.' >&2
             exit 1
           fi
 
   body-guard:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'merge_group'
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
     steps:
-      - name: Require the issue, change and verification
+      - name: Resolve the pull request
+        # A merge group event carries no pull request. Read the queued pull
+        # request from the API, so the check validates its current body.
         env:
-          BODY: ${{ github.event.pull_request.body }}
+          GH_TOKEN: ${{ github.token }}
+          QUEUE_REF: ${{ github.event.merge_group.head_ref }}
         run: |
-          printf '%s\n' "$BODY" | grep -Eq '(#[0-9]+|github.com/OpenRAE/(runtime|rae)/issues/[0-9]+)'
-          printf '%s\n' "$BODY" | grep -Eq '^## (Change|Summary)'
-          printf '%s\n' "$BODY" | grep -Eq '^## (Verification|Test plan)'
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = merge_group ]; then
+            pattern='^refs/heads/gh-readonly-queue/dev/pr-([0-9]+)-[0-9a-f]{40}$'
+            if [[ ! "$QUEUE_REF" =~ $pattern ]]; then
+              echo "Unexpected merge group ref '$QUEUE_REF'" >&2
+              exit 1
+            fi
+            gh api "repos/$GITHUB_REPOSITORY/pulls/${BASH_REMATCH[1]}" > "$RUNNER_TEMP/pull-request.json"
+            jq -e '.base.ref == "dev"' "$RUNNER_TEMP/pull-request.json" > /dev/null || { echo 'The queued pull request does not target dev.' >&2; exit 1; }
+          else
+            jq -e '.pull_request' "$GITHUB_EVENT_PATH" > "$RUNNER_TEMP/pull-request.json"
+          fi
+          jq -r '.body // ""' "$RUNNER_TEMP/pull-request.json" > "$RUNNER_TEMP/body.txt"
+      - name: Require the issue, change and verification
+        run: |
+          grep -Eq '(#[0-9]+|github.com/OpenRAE/(runtime|rae)/issues/[0-9]+)' "$RUNNER_TEMP/body.txt"
+          grep -Eq '^## (Change|Summary)' "$RUNNER_TEMP/body.txt"
+          grep -Eq '^## (Verification|Test plan)' "$RUNNER_TEMP/body.txt"
